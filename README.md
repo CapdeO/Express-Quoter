@@ -132,9 +132,9 @@ fetch("http://localhost:8000/quote", {
 
 - To run the server in development mode:
   ```bash
-  yarn dev
+  yarn serve
   # or
-  npm run dev
+  npm run serve
   ```
 
 ## License

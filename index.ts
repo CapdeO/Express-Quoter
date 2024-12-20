@@ -1,10 +1,9 @@
 import express, { NextFunction, Request, Response } from "express"
 import cors from "cors"
-import { getProvider, fromReadableAmount } from "./utils"
+import { getProvider } from "./utils"
 import { AlphaRouter, SwapOptionsSwapRouter02, SwapType } from "@uniswap/smart-order-router"
 import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core"
-import { ethers } from "ethers"
-import JSBI from "jsbi"
+import { BigNumber, ethers } from "ethers"
 import dotenv from "dotenv"
 
 dotenv.config()
@@ -44,7 +43,7 @@ app.use(validateApiKey)
 app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
     try {
         // console.log(req.body)
-        console.log("Inside quote route-------------")
+        console.log(`Inside quote route-----------`)
 
         const {
             chainId,
@@ -64,6 +63,7 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
         const tokenInTyped = new Token(chainId, tokenIn.address, tokenIn.decimals, tokenIn.symbol, tokenIn.name);
         const tokenOutTyped = new Token(chainId, tokenOut.address, tokenOut.decimals, tokenOut.symbol, tokenOut.name);
 
+        console.log(`Quote ----> ${tokenInTyped.symbol}/${tokenOutTyped.symbol}`)
 
         const provider = getProvider(chainId)
 
@@ -78,11 +78,12 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
             deadline: Math.floor(Date.now() / 1000 + 1800),
             type: SwapType.SWAP_ROUTER_02,
         };
+        var fixedAmount: any = Number(amountIn).toFixed(18)
 
-        const rawTokenAmountIn: JSBI = fromReadableAmount(Number(amountIn), tokenInTyped.decimals);
+        var rawAmount: BigNumber | number | string = ethers.utils.parseUnits(fixedAmount.toString(), tokenInTyped.decimals)
 
         const route = await router.route(
-            CurrencyAmount.fromRawAmount(tokenInTyped, rawTokenAmountIn.toString()),
+            CurrencyAmount.fromRawAmount(tokenInTyped, rawAmount.toString()),
             tokenOutTyped,
             TradeType.EXACT_INPUT,
             options
