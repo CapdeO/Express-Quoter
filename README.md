@@ -1,7 +1,3 @@
-Here's a README for your repository:
-
----
-
 # Uniswap API Key Protected Quote Service
 
 This project provides an Express-based server to interact with the Uniswap Smart Order Router, allowing users to get token swap quotes. The API is protected with an API key to restrict unauthorized access.
