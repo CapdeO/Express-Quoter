@@ -78,7 +78,7 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
             deadline: Math.floor(Date.now() / 1000 + 1800),
             type: SwapType.SWAP_ROUTER_02,
         };
-        var fixedAmount: any = Number(amountIn).toFixed(18)
+        var fixedAmount: any = Number(amountIn).toFixed(tokenIn.decimals)
 
         var rawAmount: BigNumber | number | string = ethers.utils.parseUnits(fixedAmount.toString(), tokenInTyped.decimals)
 
@@ -89,9 +89,10 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
             options
         );
 
-        console.log(route?.quote)
+        // console.log(route?.quote)
 
         if (!route || !route.methodParameters) {
+            console.log("No route found")
             res.status(400).json({
                 error: "No route found",
                 details:
