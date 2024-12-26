@@ -100,19 +100,12 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
             return
         }
 
-        var readableAmount
+        const readableAmount = route.quote.toExact()
 
-        if (route?.quote?.numerator && route?.quote?.currency?.decimals !== undefined) {
-            readableAmount = ethers.utils.formatUnits(
-                route.quote.numerator.toString(),
-                route.quote.currency.decimals
-            );
-            console.log(`Output amount: ${readableAmount} ${route?.quote?.currency?.symbol}`);
-        }
-
-        console.log(`TO EXACT ${route.quote.toExact()}`)
+        console.log(`Output amount: ${readableAmount} ${route?.quote?.currency?.symbol}`)
 
         res.json({
+            route,
             numerator: route?.quote.numerator,
             decimals: route?.quote.currency.decimals,
             readableAmount
