@@ -109,7 +109,7 @@ async function testQuote() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": "6761da7e-1b74-800d-9ba3-95aa57437a4b",
+                "x-api-key": process.env.API_KEY,
             },
             body: JSON.stringify(requestBody),
         });
@@ -221,7 +221,7 @@ async function testQuotePancakeswap() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": "6761da7e-1b74-800d-9ba3-95aa57437a4b",
+                "x-api-key": process.env.API_KEY,
             },
             body: JSON.stringify(requestBody),
         });
