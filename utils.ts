@@ -1,5 +1,7 @@
 import { ethers } from "ethers"
 import dotenv from "dotenv"
+import { SmartRouterTrade } from "@pancakeswap/smart-router";
+import { TradeType } from "@pancakeswap/sdk";
 
 dotenv.config()
 
@@ -19,4 +21,12 @@ export const getProvider = (_chainId: number) => {
         provider = new ethers.providers.JsonRpcProvider(process.env.MATIC_URL)
 
     return provider
+}
+
+export const convertBigIntToString = (obj: SmartRouterTrade<TradeType> | null) => {
+    return JSON.parse(
+        JSON.stringify(obj, (key, value) =>
+            typeof value === 'bigint' ? value.toString() : value
+        )
+    );
 }

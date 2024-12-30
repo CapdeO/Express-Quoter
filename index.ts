@@ -1,8 +1,25 @@
+// Express
 import express, { NextFunction, Request, Response } from "express"
 import cors from "cors"
-import { getProvider } from "./utils"
+
+// Uniswap
 import { AlphaRouter, SwapOptionsSwapRouter02, SwapType } from "@uniswap/smart-order-router"
 import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core"
+
+// Pancakeswap
+import {
+    Token as TokenPcs,
+    CurrencyAmount as
+        CurrencyAmountPcs,
+    TradeType as TradeTypePcs
+} from "@pancakeswap/sdk"
+import { SmartRouter } from "@pancakeswap/smart-router"
+
+// utils
+import { getProvider, convertBigIntToString } from "./utils"
+import { createPublicClient, http } from "viem"
+import { bsc } from 'viem/chains'
+import { GraphQLClient } from 'graphql-request'
 import { BigNumber, ethers } from "ethers"
 import dotenv from "dotenv"
 
@@ -120,6 +137,96 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
         });
     }
 })
+
+app.post("/quote-pancakeswap", validateApiKey, async (req: Request, res: Response) => {
+    try {
+        console.log(`Inside quote bsc route-----------`);
+
+        const { walletAddress, tokenIn, tokenOut, amountIn }: RequestBody = req.body;
+
+        if (!walletAddress || !tokenIn.symbol || !tokenOut.symbol || !amountIn) {
+            res.status(400).json({ error: "Missing required parameters." });
+            return;
+        }
+
+        const tokenInTyped = new TokenPcs(56, tokenIn.address as `0x${string}`, tokenIn.decimals, tokenIn.symbol, tokenIn.name);
+        const tokenOutTyped = new TokenPcs(56, tokenOut.address as `0x${string}`, tokenOut.decimals, tokenOut.symbol, tokenOut.name);
+
+        console.log(`Quote ----> ${tokenInTyped.symbol}/${tokenOutTyped.symbol}`)
+
+        const publicClient = createPublicClient({
+            chain: bsc,
+            transport: http('https://bsc-dataseed1.binance.org'),
+            batch: {
+                multicall: {
+                    batchSize: 1024 * 200,
+                },
+            },
+        });
+
+        const v3SubgraphClient = new GraphQLClient('https://api.thegraph.com/subgraphs/name/pancakeswap/exchange-v3-bsc');
+        const v2SubgraphClient = new GraphQLClient('https://proxy-worker-api.pancakeswap.com/bsc-exchange');
+
+        const quoteProvider = SmartRouter.createQuoteProvider({
+            onChainProvider: () => publicClient,
+        });
+
+        const fixedAmount: any = Number(amountIn).toFixed(tokenIn.decimals);
+        const rawAmount: BigNumber | number | string = ethers.utils.parseUnits(fixedAmount.toString(), tokenInTyped.decimals);
+        const amount = CurrencyAmountPcs.fromRawAmount(tokenInTyped, rawAmount.toString());
+
+        const [v2Pools, v3Pools] = await Promise.all([
+            SmartRouter.getV2CandidatePools({
+                onChainProvider: () => publicClient,
+                v2SubgraphProvider: () => v2SubgraphClient,
+                v3SubgraphProvider: () => v3SubgraphClient,
+                currencyA: amount.currency,
+                currencyB: tokenOutTyped,
+            }),
+            SmartRouter.getV3CandidatePools({
+                onChainProvider: () => publicClient,
+                subgraphProvider: () => v3SubgraphClient,
+                currencyA: amount.currency,
+                currencyB: tokenOutTyped,
+                subgraphFallback: false,
+            }),
+        ]);
+
+        let trade;
+        try {
+            trade = await SmartRouter.getBestTrade(amount, tokenOutTyped, TradeTypePcs.EXACT_INPUT, {
+                gasPriceWei: () => publicClient.getGasPrice(),
+                maxHops: 2,
+                maxSplits: 2,
+                poolProvider: SmartRouter.createStaticPoolProvider(v3Pools),
+                quoteProvider,
+                quoterOptimization: true,
+            });
+            // console.log("Trade found using V3 pools:", trade);
+        } catch (error) {
+            // console.warn("Failed to find trade using V3 pools, trying V2 pools:", error);
+            trade = await SmartRouter.getBestTrade(amount, tokenOutTyped, TradeTypePcs.EXACT_INPUT, {
+                gasPriceWei: () => publicClient.getGasPrice(),
+                maxHops: 2,
+                maxSplits: 2,
+                poolProvider: SmartRouter.createStaticPoolProvider(v2Pools),
+                quoteProvider,
+                quoterOptimization: true,
+            });
+            // console.log("Trade found using V2 pools:", trade);
+        }
+
+        const tradeResponse = convertBigIntToString(trade);
+
+        res.json({ tradeResponse });
+    } catch (error) {
+        console.error("Route error:", error);
+        res.status(500).json({
+            error: "Failed to process route.",
+            message: error,
+        });
+    }
+});
 
 // NOT WORKING FOR NOW
 // app.post("/quotes", async (req: Request, res: Response) => {
