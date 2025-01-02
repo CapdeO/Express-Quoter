@@ -16,7 +16,7 @@ const swapRouterAddress = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
 // ]
 const swapRouterABI = [
     "function exactInput((bytes path, address recipient, uint256 amountIn, uint256 amountOutMinimum)) external payable returns (uint256 amountOut)",
-    "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) external returns (uint256[] memory amounts)"
+    "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] calldata path, address to) external returns (uint256 amountOut)"
 ];
 
 const swapRouter = new ethers.Contract(swapRouterAddress, swapRouterABI, signer)
@@ -36,6 +36,7 @@ function encodePath(tokenPath, pools, protocol) {
             }
         }
 
+        console.log(`encoded path for v3 ${values}`)
         return ethers.utils.solidityPack(types, values)
     } else {
         // const types = []
@@ -47,6 +48,8 @@ function encodePath(tokenPath, pools, protocol) {
         }
 
         // return ethers.utils.solidityPack(types, values)
+        console.log("path v2")
+        console.log(values)
         return values
     }
 }
@@ -94,7 +97,7 @@ async function testQuote() {
         "USD Coin",
     )
 
-    const amount_ = "0.00000017"
+    const amount_ = "0.00000040"
 
     const requestBody = {
         chainId: 137,
@@ -121,26 +124,27 @@ async function testQuote() {
         }
 
         const data = await response.json();
-        // console.log("Response:", data);
+
+        // ==========================================
+
+        console.log(data.route.route)
 
         // ==========================================
 
         // Always getting the first offered route
 
-        const firstRoute = data.route.route[0]
+        // const firstRoute = data.route.route[0]
+        // console.log(firstRoute)
 
-        // console.log(data.route)
-        console.log(firstRoute.route.pools)
-
-        const encodedPath = encodePath(firstRoute.tokenPath, firstRoute.route.pools, firstRoute.protocol)
+        // const encodedPath = encodePath(firstRoute.tokenPath, firstRoute.route.pools, firstRoute.protocol)
 
         // if (firstRoute.protocol === 'V2') {
+        //     console.log("calling v2")
         //     const params = {
-        //         path: encodedPath,
-        //         to: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
         //         amountIn: ethers.utils.parseUnits(amount_, tokenIn.decimals),
         //         amountOutMin: 0,
-        //         deadline: Math.floor(Date.now() / 1000 + 1800),
+        //         path: encodedPath,
+        //         to: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
         //     }
 
         //     const tx = await swapRouter.swapExactTokensForTokens(
@@ -148,28 +152,30 @@ async function testQuote() {
         //         params.amountOutMin,
         //         params.path,
         //         params.to,
-        //         params.deadline
         //     )
         //     const receipt = await tx.wait()
         //     console.log("Swap success:", receipt)
         // } else {
-        //     const params = {
-        //         path: encodedPath,
-        //         recipient: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
-        //         amountIn: ethers.utils.parseUnits(amount_, tokenIn.decimals),
-        //         amountOutMinimum: 0
-        //     }
 
-        //     let maxFeePerGas = ethers.BigNumber.from(900000000000)
-        //     let maxPriorityFeePerGas = ethers.BigNumber.from(900000000000)
+        //     console.log("v3 route. aborting..")
 
-        //     const tx = await swapRouter.exactInput(params, {
-        //         maxFeePerGas: maxFeePerGas,
-        //         maxPriorityFeePerGas: maxPriorityFeePerGas,
-        //     });
+        //     // const params = {
+        //     //     path: encodedPath,
+        //     //     recipient: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
+        //     //     amountIn: ethers.utils.parseUnits(amount_, tokenIn.decimals),
+        //     //     amountOutMinimum: 0
+        //     // }
 
-        //     const receipt = await tx.wait()
-        //     console.log("Swap success:", receipt)
+        //     // let maxFeePerGas = ethers.BigNumber.from(900000000000)
+        //     // let maxPriorityFeePerGas = ethers.BigNumber.from(900000000000)
+
+        //     // const tx = await swapRouter.exactInput(params, {
+        //     //     maxFeePerGas: maxFeePerGas,
+        //     //     maxPriorityFeePerGas: maxPriorityFeePerGas,
+        //     // });
+
+        //     // const receipt = await tx.wait()
+        //     // console.log("Swap success:", receipt)
         // }
 
     } catch (error) {
@@ -247,5 +253,5 @@ async function testQuotePancakeswap() {
     }
 }
 
-// testQuote()
-testQuotePancakeswap()
+testQuote()
+// testQuotePancakeswap()

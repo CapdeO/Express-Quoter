@@ -5,6 +5,7 @@ import cors from "cors"
 // Uniswap
 import { AlphaRouter, SwapOptionsSwapRouter02, SwapType } from "@uniswap/smart-order-router"
 import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core"
+import { Protocol, SwapRouter, Trade, ZERO } from '@uniswap/router-sdk';
 
 // Pancakeswap
 import {
@@ -86,12 +87,12 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
 
         const router = new AlphaRouter({
             chainId: chainId,
-            provider
+            provider,
         })
 
         const options: SwapOptionsSwapRouter02 = {
             recipient: walletAddress,
-            slippageTolerance: new Percent(50, 10_000),
+            slippageTolerance: new Percent(200, 10_000),
             deadline: Math.floor(Date.now() / 1000 + 1800),
             type: SwapType.SWAP_ROUTER_02,
         };
@@ -99,12 +100,27 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
 
         var rawAmount: BigNumber | number | string = ethers.utils.parseUnits(fixedAmount.toString(), tokenInTyped.decimals)
 
-        const route = await router.route(
+        let route = await router.route(
             CurrencyAmount.fromRawAmount(tokenInTyped, rawAmount.toString()),
             tokenOutTyped,
             TradeType.EXACT_INPUT,
-            options
+            options,
+            {
+                protocols: [Protocol.V3]
+            }
         );
+
+        if (!route) {
+            route = await router.route(
+                CurrencyAmount.fromRawAmount(tokenInTyped, rawAmount.toString()),
+                tokenOutTyped,
+                TradeType.EXACT_INPUT,
+                options,
+                {
+                    protocols: [Protocol.V2]
+                }
+            );
+        }
 
         // console.log(route?.quote)
 
