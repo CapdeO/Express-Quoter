@@ -233,8 +233,10 @@ app.post("/quote-pancakeswap", validateApiKey, async (req: Request, res: Respons
         }
 
         const tradeResponse = convertBigIntToString(trade);
+        const firstRoute = tradeResponse.routes[0]
+        const readableAmount = ethers.utils.formatUnits(firstRoute.outputAmount.numerator, firstRoute.outputAmount.currency.decimals)
 
-        res.json({ tradeResponse });
+        res.json({ tradeResponse, readableAmount });
     } catch (error) {
         console.error("Route error:", error);
         res.status(500).json({

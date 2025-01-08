@@ -240,18 +240,21 @@ async function testQuotePancakeswap() {
 
         const data = await response.json()
 
+        // console.log(data)
+
         const firstRoute = data.tradeResponse.routes[0]
 
-        // console.log(firstRoute.path)
+        const readableAmount = ethers.utils.formatUnits(firstRoute.outputAmount.numerator, firstRoute.outputAmount.currency.decimals)
+        console.log(firstRoute)
 
-        const encodedPath = encodePath(firstRoute.path, firstRoute.pools, firstRoute.pools[0].type)
+        // const encodedPath = encodePath(firstRoute.path, firstRoute.pools, firstRoute.pools[0].type)
 
-        console.log(encodedPath)
+        // console.log(encodedPath)
 
     } catch (error) {
         console.error("Error occurred:", error.message || error)
     }
 }
 
-testQuote()
-// testQuotePancakeswap()
+// testQuote()
+testQuotePancakeswap()
