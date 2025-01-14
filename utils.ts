@@ -7,7 +7,7 @@ dotenv.config()
 
 export const getProvider = (_chainId: number) => {
 
-    if (_chainId !== 56 && _chainId !== 8453 && _chainId !== 137)
+    if (_chainId !== 56 && _chainId !== 8453 && _chainId !== 137 && _chainId !==1)
         throw new Error("Wrong chain ID.");
 
 
@@ -17,6 +17,8 @@ export const getProvider = (_chainId: number) => {
         provider = new ethers.providers.JsonRpcProvider(process.env.BSC_URL)
     else if (_chainId === 8453)
         provider = new ethers.providers.JsonRpcProvider(process.env.BASE_URL)
+    else if (_chainId === 1)
+        provider = new ethers.providers.JsonRpcProvider(process.env.ETH_URL)
     else
         provider = new ethers.providers.JsonRpcProvider(process.env.MATIC_URL)
 
