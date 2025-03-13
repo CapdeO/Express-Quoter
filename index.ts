@@ -4,8 +4,8 @@ import cors from "cors"
 
 // Uniswap
 import { AlphaRouter, SwapOptionsSwapRouter02, SwapType } from "@uniswap/smart-order-router"
-import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core"
-import { Protocol, SwapRouter, Trade, ZERO } from '@uniswap/router-sdk';
+import { CurrencyAmount, Percent, Token, TradeType, Ether, Currency } from "@uniswap/sdk-core"
+import { ADDRESS_ZERO, Protocol, SwapRouter, Trade, ZERO } from '@uniswap/router-sdk';
 
 // Pancakeswap
 import {
@@ -78,7 +78,11 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
             return
         }
 
-        const tokenInTyped = new Token(chainId, tokenIn.address, tokenIn.decimals, tokenIn.symbol, tokenIn.name);
+        const isNativeTokenIn = tokenIn.address === ADDRESS_ZERO;
+
+        const tokenInTyped = isNativeTokenIn ?
+            (Ether.onChain(chainId) as Currency) :
+            new Token(chainId, tokenIn.address, tokenIn.decimals, tokenIn.symbol, tokenIn.name);
         const tokenOutTyped = new Token(chainId, tokenOut.address, tokenOut.decimals, tokenOut.symbol, tokenOut.name);
 
         console.log(`Quote ----> ${tokenInTyped.symbol}/${tokenOutTyped.symbol}`)

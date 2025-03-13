@@ -1,25 +1,12 @@
-const { ChainId, Currency, Token } = require("@uniswap/sdk-core");
+const { ChainId, Currency, Token, Percent } = require("@uniswap/sdk-core");
+const { SwapRouter } = require("@uniswap/router-sdk");
+const { SwapType } = require("@uniswap/smart-order-router");
 const ethers = require("ethers")
 const dotenv = require("dotenv")
+const abi = require("./abi.json");
+const erc20Abi = require("./erc20.json");
 
 dotenv.config()
-
-const provider = new ethers.providers.JsonRpcProvider(process.env.MATIC_URL)
-const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
-
-// BASE
-// const swapRouterAddress = "0x2626664c2603336E57B271c5C0b26F421741e481"
-// POLYGON
-const swapRouterAddress = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
-// const swapRouterABI = [
-//     "function exactInput((bytes path, address recipient, uint256 amountIn, uint256 amountOutMinimum)) external payable returns (uint256 amountOut)"
-// ]
-const swapRouterABI = [
-    "function exactInput((bytes path, address recipient, uint256 amountIn, uint256 amountOutMinimum)) external payable returns (uint256 amountOut)",
-    "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] calldata path, address to) external returns (uint256 amountOut)"
-];
-
-const swapRouter = new ethers.Contract(swapRouterAddress, swapRouterABI, signer)
 
 function encodePath(tokenPath, pools, protocol) {
     if (protocol === "V3" || protocol === 1) {
@@ -59,55 +46,82 @@ async function testQuote() {
 
     // const tokenIn = new Token(
     //     8453,
-    //     "0xA6f774051dFb6b54869227fDA2DF9cb46f296c09",
-    //     18,
-    //     "SKICAT",
-    //     "SKI MASK CAT",
-    // )
-
-    // const tokenIn = new Token(
-    //     8453,
-    //     "0x3C281A39944a2319aA653D81Cfd93Ca10983D234",
-    //     18,
-    //     "BUIDL",
-    //     "Buidl",
+    //     "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    //     6,
+    //     "USDC",
+    //     "USDC",
     // )
 
     const tokenIn = new Token(
-        137,
-        "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
-        8,
-        "WBTC",
-        "(PoS) Wrapped BTC",
+        8453,
+        "0x0000000000000000000000000000000000000000",
+        18,
+        "ETH",
+        "Ether",
     )
 
-    // const tokenOut = new Token(
-    //     8453,
-    //     "0x4200000000000000000000000000000000000006",
-    //     18,
-    //     "WETH",
-    //     "Weth",
-    // )
-
-    const tokenOut = new Token(
-        137,
-        "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
-        6,
-        "USDC",
-        "USD Coin",
+    const tokenOut1 = new Token(
+        8453,
+        "0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4",
+        18,
+        "TOSHI",
+        "Toshi",
     )
 
-    const amount_ = "0.00000040"
+    const tokenOut2 = new Token(
+        8453,
+        "0x199664F01704DE177E0871963d8E2BF01E964708",
+        18,
+        "TOSHI",
+        "Toshi",
+    )
 
-    const requestBody = {
-        chainId: 137,
-        walletAddress: "0xBb992375dE1a6f462B381b5dDF706Aca893FBc30",
-        tokenIn,
-        tokenOut,
-        amountIn: amount_,
-    };
+    const tokenOut3 = new Token(
+        8453,
+        "0xBA5E66FB16944Da22A62Ea4FD70ad02008744460",
+        9,
+        "TOSHI",
+        "Toshi",
+    )
 
-    try {
+    const tokenOut4 = new Token(
+        8453,
+        "0x5Dc232B8301E34EFe2F0ea2A5a81da5b388Bb45E",
+        9,
+        "TOSHI",
+        "Toshi",
+    )
+
+    const tokenOut5 = new Token(
+        8453,
+        "0x1196c6704789620514fD25632aBe15F69a50bc4f",
+        18,
+        "TOSHI",
+        "Toshi",
+    )
+
+    const tokens = [tokenOut5]
+
+    const amount_ = "100"
+    const amountWithFee_ = "95"
+
+    console.log("AMOUNT TO SWAP", amountWithFee_)
+
+    var _swapData = []
+    var _router = []
+    var _tokenAddresses = []
+    var _amounts = []
+
+    for (const _token of tokens) {
+
+        const requestBody = {
+            chainId: 8453,
+            walletAddress: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
+            tokenIn,
+            tokenOut: _token,
+            amountIn: amountWithFee_, // amount_,
+        };
+
         const response = await fetch(url, {
             method: "POST",
             headers: {
@@ -117,70 +131,21 @@ async function testQuote() {
             body: JSON.stringify(requestBody),
         });
 
-        if (!response.ok) {
-            const data = await response.json();
-            console.log(data)
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
         const data = await response.json();
+        console.log(data.route)
 
-        // ==========================================
-
-        console.log(data.route.route)
-
-        // ==========================================
-
-        // Always getting the first offered route
-
-        // const firstRoute = data.route.route[0]
-        // console.log(firstRoute)
-
-        // const encodedPath = encodePath(firstRoute.tokenPath, firstRoute.route.pools, firstRoute.protocol)
-
-        // if (firstRoute.protocol === 'V2') {
-        //     console.log("calling v2")
-        //     const params = {
-        //         amountIn: ethers.utils.parseUnits(amount_, tokenIn.decimals),
-        //         amountOutMin: 0,
-        //         path: encodedPath,
-        //         to: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
-        //     }
-
-        //     const tx = await swapRouter.swapExactTokensForTokens(
-        //         params.amountIn,
-        //         params.amountOutMin,
-        //         params.path,
-        //         params.to,
-        //     )
-        //     const receipt = await tx.wait()
-        //     console.log("Swap success:", receipt)
-        // } else {
-
-        //     console.log("v3 route. aborting..")
-
-        //     // const params = {
-        //     //     path: encodedPath,
-        //     //     recipient: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
-        //     //     amountIn: ethers.utils.parseUnits(amount_, tokenIn.decimals),
-        //     //     amountOutMinimum: 0
-        //     // }
-
-        //     // let maxFeePerGas = ethers.BigNumber.from(900000000000)
-        //     // let maxPriorityFeePerGas = ethers.BigNumber.from(900000000000)
-
-        //     // const tx = await swapRouter.exactInput(params, {
-        //     //     maxFeePerGas: maxFeePerGas,
-        //     //     maxPriorityFeePerGas: maxPriorityFeePerGas,
-        //     // });
-
-        //     // const receipt = await tx.wait()
-        //     // console.log("Swap success:", receipt)
-        // }
-
-    } catch (error) {
-        console.error("Error occurred:", error.message || error);
+        _swapData.push(data.route.methodParameters.calldata)
+        _router.push(data.route.methodParameters.to)
+        _tokenAddresses.push(tokenIn.address)
+        _amounts.push(ethers.utils.parseUnits(amount_, 6))
+        console.log(_tokenAddresses)
     }
+
+    console.log(`_swapData: ${_swapData}`)
+    console.log(`_router: ${_router}`)
+    console.log(`_tokenAddresses: ${_tokenAddresses}`)
+    console.log(`_amounts: ${_amounts}`)
+
 }
 
 async function testQuotePancakeswap() {
@@ -216,7 +181,7 @@ async function testQuotePancakeswap() {
 
     const requestBody = {
         chainId: 8453,
-        walletAddress: "0xBb992375dE1a6f462B381b5dDF706Aca893FBc30",
+        walletAddress: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
         tokenIn,
         tokenOut,
         amountIn: amount_,
@@ -256,5 +221,5 @@ async function testQuotePancakeswap() {
     }
 }
 
-// testQuote()
-testQuotePancakeswap()
+testQuote()
+// testQuotePancakeswap()
