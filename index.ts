@@ -96,7 +96,7 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
 
         const options: SwapOptionsSwapRouter02 = {
             recipient: walletAddress,
-            slippageTolerance: new Percent(200, 10_000),
+            slippageTolerance: new Percent(10_000, 10_000),
             deadline: Math.floor(Date.now() / 1000 + 1800),
             type: SwapType.SWAP_ROUTER_02,
         };
