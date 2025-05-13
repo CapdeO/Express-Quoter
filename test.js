@@ -44,16 +44,8 @@ function encodePath(tokenPath, pools, protocol) {
 async function testQuote() {
     const url = "http://localhost:8000/quote"
 
-    // const tokenIn = new Token(
-    //     8453,
-    //     "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-    //     6,
-    //     "USDC",
-    //     "USDC",
-    // )
-
     const tokenIn = new Token(
-        8453,
+        137,
         "0x0000000000000000000000000000000000000000",
         18,
         "ETH",
@@ -61,49 +53,49 @@ async function testQuote() {
     )
 
     const tokenOut1 = new Token(
-        8453,
-        "0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4",
+        137,
+        "0xc3ec80343d2bae2f8e680fdadde7c17e71e114ea",
         18,
-        "TOSHI",
-        "Toshi",
+        "OM",
+        "Mantra",
     )
 
-    const tokenOut2 = new Token(
-        8453,
-        "0x199664F01704DE177E0871963d8E2BF01E964708",
-        18,
-        "TOSHI",
-        "Toshi",
-    )
+    // const tokenOut2 = new Token(
+    //     8453,
+    //     "0x199664F01704DE177E0871963d8E2BF01E964708",
+    //     18,
+    //     "TOSHI",
+    //     "Toshi",
+    // )
 
-    const tokenOut3 = new Token(
-        8453,
-        "0xBA5E66FB16944Da22A62Ea4FD70ad02008744460",
-        9,
-        "TOSHI",
-        "Toshi",
-    )
+    // const tokenOut3 = new Token(
+    //     8453,
+    //     "0xBA5E66FB16944Da22A62Ea4FD70ad02008744460",
+    //     9,
+    //     "TOSHI",
+    //     "Toshi",
+    // )
 
-    const tokenOut4 = new Token(
-        8453,
-        "0x5Dc232B8301E34EFe2F0ea2A5a81da5b388Bb45E",
-        9,
-        "TOSHI",
-        "Toshi",
-    )
+    // const tokenOut4 = new Token(
+    //     8453,
+    //     "0x5Dc232B8301E34EFe2F0ea2A5a81da5b388Bb45E",
+    //     9,
+    //     "TOSHI",
+    //     "Toshi",
+    // )
 
-    const tokenOut5 = new Token(
-        8453,
-        "0x1196c6704789620514fD25632aBe15F69a50bc4f",
-        18,
-        "TOSHI",
-        "Toshi",
-    )
+    // const tokenOut5 = new Token(
+    //     8453,
+    //     "0x1196c6704789620514fD25632aBe15F69a50bc4f",
+    //     18,
+    //     "TOSHI",
+    //     "Toshi",
+    // )
 
-    const tokens = [tokenOut5]
+    const tokens = [tokenOut1]
 
-    const amount_ = "100"
-    const amountWithFee_ = "95"
+    const amount_ = "0.001"
+    const amountWithFee_ = "0.00095"
 
     console.log("AMOUNT TO SWAP", amountWithFee_)
 
@@ -115,7 +107,7 @@ async function testQuote() {
     for (const _token of tokens) {
 
         const requestBody = {
-            chainId: 8453,
+            chainId: 137,
             walletAddress: "0x61D4d1Ab7eA7B3A54C7B2D646Eb8189faD7B1050",
             tokenIn,
             tokenOut: _token,
@@ -132,7 +124,7 @@ async function testQuote() {
         });
 
         const data = await response.json();
-        console.log(data.route)
+        console.log(data.route.route[0].route.pools)
 
         _swapData.push(data.route.methodParameters.calldata)
         _router.push(data.route.methodParameters.to)
@@ -141,10 +133,10 @@ async function testQuote() {
         console.log(_tokenAddresses)
     }
 
-    console.log(`_swapData: ${_swapData}`)
-    console.log(`_router: ${_router}`)
-    console.log(`_tokenAddresses: ${_tokenAddresses}`)
-    console.log(`_amounts: ${_amounts}`)
+    // console.log(`_swapData: ${_swapData}`)
+    // console.log(`_router: ${_router}`)
+    // console.log(`_tokenAddresses: ${_tokenAddresses}`)
+    // console.log(`_amounts: ${_amounts}`)
 
 }
 
