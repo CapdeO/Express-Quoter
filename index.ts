@@ -109,22 +109,22 @@ app.post("/quote", validateApiKey, async (req: Request, res: Response) => {
             tokenOutTyped,
             TradeType.EXACT_INPUT,
             options,
-            {
-                protocols: [Protocol.V3]
-            }
+            // {
+            //     protocols: [Protocol.V3]
+            // }
         );
 
-        if (!route) {
-            route = await router.route(
-                CurrencyAmount.fromRawAmount(tokenInTyped, rawAmount.toString()),
-                tokenOutTyped,
-                TradeType.EXACT_INPUT,
-                options,
-                {
-                    protocols: [Protocol.V2]
-                }
-            );
-        }
+        // if (!route) {
+        //     route = await router.route(
+        //         CurrencyAmount.fromRawAmount(tokenInTyped, rawAmount.toString()),
+        //         tokenOutTyped,
+        //         TradeType.EXACT_INPUT,
+        //         options,
+        //         {
+        //             protocols: [Protocol.V2]
+        //         }
+        //     );
+        // }
 
         // console.log(route?.quote)
 
